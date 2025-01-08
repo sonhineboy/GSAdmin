@@ -355,3 +355,124 @@ func TestReg(t *testing.T) {
 
 	fmt.Println(reg.ReplaceAllString("gc_gcaa", ""))
 }
+
+func TestViper(t *testing.T) {
+
+	fmt.Printf("xxx %s", "asfs")
+}
+func TestG2(t *testing.T) {
+	c := make(chan int, 20)
+	c <- 1
+	close(c)
+	cv, ok := <-c
+	fmt.Println(cv, ok)
+	cv, ok = <-c
+	fmt.Println(cv, ok)
+
+	t.Fatal("asdfasd")
+
+}
+func TestG(t *testing.T) {
+	c := make(chan int, 20)
+	test5(c)
+	for {
+		select {
+		case c, ok := <-c:
+			fmt.Println(c, ok)
+		default:
+			fmt.Println("--默认")
+		}
+		time.Sleep(time.Second)
+	}
+
+}
+
+func test5(ch chan int) {
+	for i := 0; i < 10; i++ {
+		ch <- i
+	}
+	close(ch)
+}
+
+// test6 aabb
+func test6(a int) {
+	fmt.Println(a)
+}
+
+func TestReflect(t *testing.T) {
+	type myTest struct {
+		Name string
+		Age  string
+	}
+	myUser := &myTest{}
+	var reV reflect.Value
+	if reflect.ValueOf(myUser).Kind() == reflect.Ptr {
+		reV = reflect.ValueOf(myUser).Elem()
+	} else {
+		reV = reflect.ValueOf(myUser)
+	}
+
+	if reV.Kind() == reflect.Struct {
+		fieldNum := reV.NumField()
+		for i := 0; i < fieldNum; i++ {
+			reV.Field(i).Set(reflect.ValueOf("1"))
+		}
+	}
+	fmt.Println(reV)
+
+	fmt.Println(reflect.ValueOf(test6).Type().In(0).Kind())
+
+	c := map[string]string{
+		"a": "b",
+		"c": "d",
+	}
+
+	cMap := reflect.ValueOf(c)
+	cMapKeys := cMap.MapKeys()
+	for i, _ := range cMapKeys {
+		fmt.Println(cMap.MapIndex(cMapKeys[i]))
+	}
+
+}
+
+func TestChan(t *testing.T) {
+
+	ch := make(chan int)
+
+	str := "hello word!"
+	go printStr(str, "A", ch)
+	go printStr(str, "B", ch)
+	ch <- 0
+	time.Sleep(time.Second * 2)
+}
+
+func printStr(str, name string, ch chan int) {
+
+loop:
+	for {
+		select {
+		case index, ok := <-ch:
+			if ok && index <= len(str)-1 {
+				fmt.Println(name, "-->", string(str[index]))
+				index++
+				ch <- index
+			} else {
+				if ok {
+					close(ch)
+				}
+				break loop
+			}
+		}
+	}
+	fmt.Println("\n 退出")
+}
+
+func IsClosed(ch <-chan int) bool {
+	select {
+	case <-ch:
+		return true
+	default:
+	}
+
+	return false
+}

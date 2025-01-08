@@ -1,19 +1,30 @@
 package initialize
 
 import (
+	"fmt"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 	"github.com/sonhineboy/gsadmin/service/config"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
+	"github.com/spf13/viper"
 )
 
 func ConfigInit(path string) *config.Config {
 	var c config.Config
-	configFile, err := ioutil.ReadFile(path + "config.yaml")
+
+	myViper := viper.New()
+	myViper.SetConfigFile(path + "config.yaml")
+	err := myViper.ReadInConfig()
+
 	if err != nil {
-		panic(err)
+		panic(errors.WithStack(err))
 	}
-	err2 := yaml.Unmarshal(configFile, &c)
-	if err2 != nil {
+
+	err = myViper.Unmarshal(&c, func(decoderConfig *mapstructure.DecoderConfig) {
+		decoderConfig.TagName = "yaml"
+	})
+
+	fmt.Println(c.Db.MaxOpenConns)
+	if err != nil {
 		panic(err)
 	}
 	return &c
